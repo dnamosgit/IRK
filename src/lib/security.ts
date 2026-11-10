@@ -35,7 +35,16 @@ export function referenceCode(prefix: string): string {
 
 export async function clientIp(): Promise<string> {
   const h = await headers();
-  return h.get('x-forwarded-for')?.split(',')[0]?.trim() || h.get('x-real-ip') || '0.0.0.0';
+  // Prefer headers set by the hosting platform (clients cannot spoof them).
+  // x-forwarded-for is only trustworthy when the edge proxy overwrites it (Vercel
+  // and Cloudflare do); when self-hosting, configure the proxy to do the same.
+  return (
+    h.get('x-vercel-forwarded-for')?.split(',')[0]?.trim() ||
+    h.get('cf-connecting-ip') ||
+    h.get('x-real-ip') ||
+    h.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    '0.0.0.0'
+  );
 }
 
 export async function clientIpHash(): Promise<string> {

@@ -11,6 +11,7 @@ import { getOfficeBySlug, getOfficeRating } from '@/lib/queries/offices';
 import { config } from '@/lib/config';
 import { fmt, formatDate, getDictionary, isLocale, localizePath, type Locale } from '@/lib/i18n';
 import { pageMetadata } from '@/lib/seo';
+import { jsonForScript } from '@/lib/safe-url';
 
 type Props = { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
 
@@ -53,7 +54,7 @@ export default async function OfficePage({ params, searchParams }: Props) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonForScript(jsonLd) }} />
       <section className="relative overflow-hidden bg-ink text-white">
         <OfficeArt seed={office.slug} className="absolute inset-0 opacity-60" />
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/30" />

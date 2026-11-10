@@ -44,7 +44,10 @@
 - Rate limits are Postgres-backed fixed windows (per IP hash, plus per account where relevant) for sign-up, sign-in, reset, reviews, reports, appeals, contact, search and votes.
 - Headers: CSP (no third-party scripts unless Kakao is enabled), HSTS, X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy. `/admin` and account pages send `no-store` and `noindex`.
 - No secrets in client bundles: only `NEXT_PUBLIC_SITE_URL` and the optional Kakao key are public.
+- Links entered by administrators (office websites, appointment pages, sources) must be `http(s)`. This is validated on input, sanitised again when rendered, and enforced by database CHECK constraints, so `javascript:` or `data:` links cannot reach a public page.
+- Post-login redirects accept same-site paths only (`src/lib/safe-url.ts`); structured data is escaped before being embedded in `<script>` tags.
 - **Known gaps before public launch:**
+  - Sign-up reveals whether an email address already has an account ("email already exists"). It is rate-limited to 5 attempts per hour per IP; removing it needs an email-first sign-up flow.
   - Administrator MFA.
   - CAPTCHA/Turnstile on sign-up.
   - Malware scanning of uploads (mitigated by image re-encoding).

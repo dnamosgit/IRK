@@ -8,10 +8,6 @@ import { pageMetadata } from '@/lib/seo';
 type Props = { params: Promise<{ locale: string; doc: string }> };
 const isDoc = (d: string): d is LegalSlug => d in LEGAL;
 
-export function generateStaticParams() {
-  return Object.keys(LEGAL).map((doc) => ({ doc }));
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale: l, doc } = await params;
   const locale = isLocale(l) ? l : 'en';

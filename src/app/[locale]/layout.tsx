@@ -9,11 +9,11 @@ import { getCurrentUser } from '@/lib/auth/session';
 import { signOutAction } from '@/lib/actions/auth';
 import { config } from '@/lib/config';
 import { isAdmin } from '@/lib/rbac';
-import { getDictionary, isLocale, LOCALES, LOCALE_LABELS } from '@/lib/i18n';
+import { getDictionary, isLocale, LOCALE_LABELS } from '@/lib/i18n';
 
-export function generateStaticParams() {
-  return LOCALES.map((locale) => ({ locale }));
-}
+// Every page depends on the signed-in user and live database content, so
+// nothing is pre-rendered at build time (builds need no database access).
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   metadataBase: new URL(config.siteUrl),

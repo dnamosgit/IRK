@@ -26,6 +26,8 @@ The app is a standard Next.js 16 server application backed by PostgreSQL. It run
 
 ## 2. Environment variables
 
+The build itself needs no database or secrets: every page is rendered on request. The variables below are needed at **runtime**; on Vercel set them under Project → Settings → Environment Variables and redeploy. Without `DATABASE_URL` the deployment builds but pages return an error.
+
 | Variable | Required | Notes |
 |---|---|---|
 | `NEXT_PUBLIC_SITE_URL` | ✅ | `https://your-domain` — used for canonical URLs, hreflang, sitemap and email links |

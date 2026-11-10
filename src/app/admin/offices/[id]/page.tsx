@@ -6,6 +6,7 @@ import { Badge, Notice } from '@/components/ui/primitives';
 import { requireAdmin } from '@/lib/admin-guard';
 import { adminDict } from '@/lib/admin-i18n';
 import { appDb } from '@/lib/db';
+import { httpUrl } from '@/lib/safe-url';
 import { addOfficeSourceAction, deleteOfficeSourceAction, officeStatusAction } from '@/lib/actions/admin';
 
 export default async function EditOffice({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ created?: string }> }) {
@@ -43,7 +44,7 @@ export default async function EditOffice({ params, searchParams }: { params: Pro
             <ul className="space-y-3 text-sm">
               {sources.map((s) => (
                 <li key={s.id} className="flex items-start justify-between gap-2">
-                  <span><a href={s.url} target="_blank" rel="noopener noreferrer" className="text-accent-text hover:underline">{s.title}</a><span className="block text-xs text-muted-text">{s.source_type} · {s.accessed_at ? new Date(s.accessed_at).toISOString().slice(0, 10) : 'no access date'}</span></span>
+                  <span><a href={httpUrl(s.url) ?? '#'} target="_blank" rel="noopener noreferrer" className="text-accent-text hover:underline">{s.title}</a><span className="block text-xs text-muted-text">{s.source_type} · {s.accessed_at ? new Date(s.accessed_at).toISOString().slice(0, 10) : 'no access date'}</span></span>
                   <ActionForm action={deleteOfficeSourceAction}><input type="hidden" name="sourceId" value={s.id} /><button className="text-xs text-danger" aria-label={`${t.common.delete} ${s.title}`}>{t.common.delete}</button></ActionForm>
                 </li>
               ))}

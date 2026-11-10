@@ -11,6 +11,7 @@ import { clientIpHash, randomToken, sha256 } from '@/lib/security';
 import { sendEmail } from '@/lib/email';
 import { EMAILS } from '@/lib/content/emails';
 import { getDictionary, isLocale, localizePath, type Locale } from '@/lib/i18n';
+import { safeRedirectPath } from '@/lib/safe-url';
 import type { ActionState } from './state';
 
 function localeOf(fd: FormData): Locale {
@@ -20,8 +21,7 @@ function localeOf(fd: FormData): Locale {
 
 /** Only allow same-site relative redirects. */
 function safeNext(value: FormDataEntryValue | null, fallback: string): string {
-  const v = typeof value === 'string' ? value : '';
-  return v.startsWith('/') && !v.startsWith('//') && !v.includes('\\') ? v : fallback;
+  return safeRedirectPath(value) ?? fallback;
 }
 
 const emailSchema = z.string().trim().toLowerCase().email().max(254);

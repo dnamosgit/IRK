@@ -7,6 +7,7 @@ import { AuthShell } from '../shell';
 import { getCurrentUser } from '@/lib/auth/session';
 import { getDictionary, isLocale, localizePath, type Locale } from '@/lib/i18n';
 import { pageMetadata } from '@/lib/seo';
+import { safeRedirectPath } from '@/lib/safe-url';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -14,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return pageMetadata(l, '/auth/sign-in', { title: getDictionary(l).auth.signIn, noindex: true });
 }
 
-const safe = (n?: string) => (n && n.startsWith('/') && !n.startsWith('//') ? n : undefined);
+const safe = (n?: string) => safeRedirectPath(n) ?? undefined;
 
 export default async function SignInPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ next?: string; reset?: string }> }) {
   const locale = (await params).locale as Locale;

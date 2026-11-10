@@ -3,6 +3,7 @@ import { cache } from 'react';
 import { readerDb } from '@/lib/db';
 import { config, type OfficeType, type ServiceCategory } from '@/lib/config';
 import { getDictionary, LOCALES, type Locale } from '@/lib/i18n';
+import { httpOrTelUrl, httpUrl } from '@/lib/safe-url';
 import { emptyAggregate, starBucket, summarize, type OfficeAggregate, type RatingSummary } from '@/lib/rating';
 
 // All public office queries run as the read-only role. Eligible reviews are
@@ -197,8 +198,8 @@ export const getOfficeBySlug = cache(async (locale: Locale, slug: string): Promi
     addressKo: verified ? row.address_ko : null,
     addressLocalized: verified ? row.address_localized : null,
     phone: verified ? row.phone : null,
-    websiteUrl: verified ? row.website_url : null,
-    appointmentInfoUrl: verified ? row.appointment_info_url : null,
+    websiteUrl: verified ? httpUrl(row.website_url) : null,
+    appointmentInfoUrl: verified ? httpUrl(row.appointment_info_url) : null,
     services: verified ? row.services : [],
     lastVerifiedAt: row.last_verified_at ? new Date(row.last_verified_at).toISOString().slice(0, 10) : null,
     dataSource: row.data_source,
@@ -208,8 +209,8 @@ export const getOfficeBySlug = cache(async (locale: Locale, slug: string): Promi
     verifiedCount: 0,
     adjustedRating: null,
     hasSampleData: false,
-    sources: sources.rows.map((s) => ({
-      id: s.id, title: s.title, url: s.url, sourceType: s.source_type,
+    sources: sources.rows.filter((s) => httpUrl(s.url)).map((s) => ({
+      id: s.id, title: s.title, url: httpUrl(s.url)!, sourceType: s.source_type,
       accessedAt: s.accessed_at ? new Date(s.accessed_at).toISOString().slice(0, 10) : null, notes: s.notes,
     })),
   };
@@ -267,5 +268,5 @@ export async function listOfficialResources() {
   const r = await readerDb.query(
     'SELECT key, url, category, title, description, last_checked_at FROM public.official_resources WHERE is_active ORDER BY sort_order',
   );
-  return r.rows as { key: string; url: string; category: string; title: Record<string, string>; description: Record<string, string>; last_checked_at: string | null }[];
+  return (r.rows.filter((x) => httpOrTelUrl(x.url)).map((x) => ({ ...x, url: httpOrTelUrl(x.url) }))) as { key: string; url: string; category: string; title: Record<string, string>; description: Record<string, string>; last_checked_at: string | null }[];
 }

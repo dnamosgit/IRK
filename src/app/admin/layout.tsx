@@ -8,6 +8,8 @@ import { can, isAdmin, type Permission } from '@/lib/rbac';
 import { adminDict } from '@/lib/admin-i18n';
 import { LOCALE_LABELS } from '@/lib/i18n';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = { title: 'Administration — Immigration Review Korea', robots: { index: false, follow: false } };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

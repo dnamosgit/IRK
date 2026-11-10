@@ -21,7 +21,7 @@ export interface EvidenceStore {
 }
 
 function localStore(): EvidenceStore {
-  const root = path.resolve(process.env.LOCAL_STORAGE_DIR || './storage/private');
+  const root = path.resolve(/* turbopackIgnore: true */ process.env.LOCAL_STORAGE_DIR || './storage/private');
   const resolve = (key: string) => {
     if (!/^[a-f0-9]{64}$/.test(key)) throw new Error('Invalid storage key');
     return path.join(root, key.slice(0, 2), key);

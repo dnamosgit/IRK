@@ -16,6 +16,7 @@ import { media } from '@/lib/media';
 import { config } from '@/lib/config';
 import { getDictionary, isLocale, localizePath, type Locale } from '@/lib/i18n';
 import { pageMetadata } from '@/lib/seo';
+import { jsonForScript } from '@/lib/safe-url';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -46,7 +47,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonForScript(orgJsonLd) }} />
 
       {/* ---------------------------------------------------------- HERO */}
       <section className="relative isolate flex min-h-[100svh] items-end overflow-hidden bg-ink text-white" aria-labelledby="hero-title">

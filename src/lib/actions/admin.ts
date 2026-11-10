@@ -8,6 +8,7 @@ import { requireAdmin } from '@/lib/admin-guard';
 import { audit } from '@/lib/audit';
 import { sha256 } from '@/lib/security';
 import { normaliseForHash } from '@/lib/validation';
+import { httpUrl } from '@/lib/safe-url';
 import { translateReview } from '@/lib/translation/pipeline';
 import { sendEmail } from '@/lib/email';
 import { EMAILS } from '@/lib/content/emails';
@@ -163,6 +164,9 @@ export async function adminDeleteEvidenceAction(_: ActionState, fd: FormData): P
 }
 
 // ------------------------------------------------------------------ offices
+// http(s) only: z.string().url() alone would accept javascript: and data: URLs
+const webUrl = z.string().trim().max(300).refine((v) => httpUrl(v) !== null, 'Must be an http(s) URL');
+
 const officeSchema = z.object({
   slug: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/).max(80),
   type: z.enum(OFFICE_TYPES),
@@ -178,8 +182,8 @@ const officeSchema = z.object({
   longitude: z.coerce.number().min(124).max(132).optional(),
   precision: z.enum(['exact', 'approximate_city', 'unknown']),
   phone: z.string().trim().max(40).optional(),
-  websiteUrl: z.string().trim().url().max(300).optional(),
-  appointmentInfoUrl: z.string().trim().url().max(300).optional(),
+  websiteUrl: webUrl.optional(),
+  appointmentInfoUrl: webUrl.optional(),
   dataSource: z.string().trim().max(1000).optional(),
   services: z.array(z.enum(SERVICE_CATEGORIES)),
 });
@@ -274,7 +278,7 @@ export async function officeStatusAction(_: ActionState, fd: FormData): Promise<
 export async function addOfficeSourceAction(_: ActionState, fd: FormData): Promise<ActionState> {
   const admin = await requireAdmin('offices');
   const parsed = z.object({
-    officeId: z.string().uuid(), title: z.string().trim().min(3).max(200), url: z.string().trim().url().max(500),
+    officeId: z.string().uuid(), title: z.string().trim().min(3).max(200), url: z.string().trim().max(500).refine((v) => httpUrl(v) !== null),
     sourceType: z.enum(['official', 'other']), accessedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), notes: z.string().max(1000).optional(),
   }).safeParse({ officeId: str(fd, 'officeId'), title: str(fd, 'title'), url: str(fd, 'url'), sourceType: str(fd, 'sourceType'), accessedAt: str(fd, 'accessedAt'), notes: str(fd, 'notes') || undefined });
   if (!parsed.success) return { error: 'Provide a title, a valid URL and the date you accessed it.' };
