@@ -26,14 +26,23 @@ The app is a standard Next.js 16 server application backed by PostgreSQL. It run
 
 ## 2. Environment variables
 
+### If every page says "Temporarily unavailable" (or showed "Something went wrong" before v0.1.1)
+
+The app cannot reach its database. Open **`https://<your-domain>/api/health`**: it returns the database error category (`not_configured`, `unreachable`, `auth_failed`, `tls`, `not_migrated`) and which variables are missing or invalid, without revealing values. The same report is printed to the Vercel function logs on startup. Typical fixes, in order:
+
+1. **Variables not set.** On Vercel: Project → Settings → Environment Variables. Add at least `DATABASE_URL`, `DATABASE_READER_URL`, `DATABASE_SSL=require`, `APP_SECRET`, `EVIDENCE_ENCRYPTION_KEY`, `NEXT_PUBLIC_SITE_URL`, then **Redeploy** (variables are read at build/boot, not live).
+2. **TLS.** Managed Postgres (Supabase, Neon, RDS) needs `DATABASE_SSL=require`. This encrypts the connection without verifying the provider certificate (libpq's "require" semantics). For verified TLS set `DATABASE_SSL=verify-full` and put the provider's CA bundle (PEM) in `DATABASE_SSL_CA`.
+3. **Roles / migrations.** `auth_failed` means the `irk_app` / `irk_reader` roles or passwords differ from the connection strings; `not_migrated` means the schema is missing: run `npm run db:migrate` against the database (section 1).
+4. **Supabase pooler.** Use the *Session* pooler (port 5432) or the direct connection; the *Transaction* pooler (port 6543) does not support the prepared statements used by `pg`.
+
 The build itself needs no database or secrets: every page is rendered on request. The variables below are needed at **runtime**; on Vercel set them under Project → Settings → Environment Variables and redeploy. Without `DATABASE_URL` the deployment builds but pages return an error.
 
 | Variable | Required | Notes |
 |---|---|---|
-| `NEXT_PUBLIC_SITE_URL` | ✅ | `https://your-domain` — used for canonical URLs, hreflang, sitemap and email links |
+| `NEXT_PUBLIC_SITE_URL` | ✅ | `https://your-domain` — canonical URLs, hreflang, sitemap and email links. Inlined at **build** time: redeploy after changing it. Falls back to the Vercel production hostname when unset. |
 | `DATABASE_URL` | ✅ | `irk_app` connection string |
 | `DATABASE_READER_URL` | ✅ | `irk_reader` connection string (public pages) |
-| `DATABASE_SSL` | ✅ managed DB | `require` |
+| `DATABASE_SSL` | ✅ managed DB | `require` (encrypted, unverified) or `verify-full` (+ `DATABASE_SSL_CA`) |
 | `APP_SECRET` | ✅ | ≥ 32 random chars (`openssl rand -base64 32`). Keys the IP hashes. |
 | `EVIDENCE_ENCRYPTION_KEY` | ✅ | 32 bytes, base64. **Back it up in a secrets manager; losing it makes stored evidence unreadable.** Without it, verification uploads are disabled (the UI says so). |
 | `STORAGE_PROVIDER` | ✅ | `supabase` on serverless hosts (local disk is ephemeral). `local` only with a persistent private volume. |

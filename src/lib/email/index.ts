@@ -7,6 +7,14 @@ import { appDb } from '@/lib/db';
 
 type Message = { to: string; subject: string; text: string };
 
+/** True when this deployment can actually deliver email. In development the
+ *  console outbox counts; in production a real provider is required. */
+export function isEmailConfigured(): boolean {
+  const provider = (process.env.EMAIL_PROVIDER ?? 'console').toLowerCase();
+  if (provider === 'resend') return !!process.env.RESEND_API_KEY;
+  return process.env.NODE_ENV !== 'production';
+}
+
 export async function sendEmail(msg: Message): Promise<void> {
   const provider = (process.env.EMAIL_PROVIDER ?? 'console').toLowerCase();
   if (provider === 'resend' && process.env.RESEND_API_KEY) {

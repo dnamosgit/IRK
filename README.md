@@ -29,6 +29,8 @@ This is a working full-stack application (Next.js 16 · React 19 · TypeScript �
 | Hero photography | ⚠️ No licensed photos could be sourced; an original SVG illustration is used. Slot for licensed photography: `src/lib/media.ts`. |
 | Legal texts (privacy, terms, guidelines, moderation policy), evidence retention period (30 days), legal-request deadline (14 days) | ⏳ **Drafts — pending legal review.** ES/KO legal texts are draft translations pending professional review and are labelled as such. |
 
+If a deployment cannot reach its database, every page shows an honest "Temporarily unavailable" notice and **`/api/health`** reports the cause (missing variables, TLS, credentials, missing migrations) without exposing values. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
 Nothing fabricated is presented as real: fictional sample reviews exist only in development (`SAMPLE_DATA=true`), are badged "Fictional sample", are excluded from statistics and analytics, and are never shown by a production build.
 
 ---

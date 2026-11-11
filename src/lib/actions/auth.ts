@@ -8,7 +8,7 @@ import { randomPseudonym } from '@/lib/auth/pseudonym';
 import { createSession, destroyAllSessions, destroySession, getCurrentUser } from '@/lib/auth/session';
 import { rateLimit } from '@/lib/rate-limit';
 import { clientIpHash, randomToken, sha256 } from '@/lib/security';
-import { sendEmail } from '@/lib/email';
+import { isEmailConfigured, sendEmail } from '@/lib/email';
 import { EMAILS } from '@/lib/content/emails';
 import { getDictionary, isLocale, localizePath, type Locale } from '@/lib/i18n';
 import { safeRedirectPath } from '@/lib/safe-url';
@@ -51,6 +51,11 @@ export async function signUpAction(_: ActionState, fd: FormData): Promise<Action
   const locale = localeOf(fd);
   const t = getDictionary(locale);
   if (!(await rateLimit('signup', 5, 3600))) return { error: t.errors.rateLimited };
+  // Fail before creating an account that could never confirm its email.
+  if (!isEmailConfigured()) {
+    console.error('[auth] sign-up refused: no email provider configured (EMAIL_PROVIDER / RESEND_API_KEY)');
+    return { error: t.errors.emailUnavailable };
+  }
 
   const fieldErrors: Record<string, string> = {};
   const email = emailSchema.safeParse(fd.get('email'));
@@ -120,6 +125,7 @@ export async function resendVerificationAction(_: ActionState, fd: FormData): Pr
   const user = await getCurrentUser();
   if (!user) return { error: t.errors.unauthorized };
   if (!(await rateLimit('resend-verify', 3, 3600, user.id))) return { error: t.errors.rateLimited };
+  if (!isEmailConfigured()) return { error: t.errors.emailUnavailable };
   if (!user.emailVerified) await sendVerification(user.id, user.email, locale);
   return { ok: true, message: t.auth.verificationSent };
 }

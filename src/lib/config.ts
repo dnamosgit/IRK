@@ -8,9 +8,21 @@ function int(value: string | undefined, fallback: number): number {
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+/** Absolute site origin. Falls back to the Vercel-provided hostname and
+ *  tolerates a missing scheme so a typo never breaks every page. */
+function resolveSiteUrl(): string {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL || 'http://localhost:3000';
+  const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    return new URL(withScheme).origin;
+  } catch {
+    return 'http://localhost:3000';
+  }
+}
+
 export const config = {
   isProduction,
-  siteUrl: (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, ''),
+  siteUrl: resolveSiteUrl(),
   rating: {
     /** m in the Bayesian formula: how many "virtual" platform-average reviews each office starts with */
     confidenceThreshold: int(process.env.RATING_CONFIDENCE_M, 10),

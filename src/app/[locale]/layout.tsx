@@ -6,6 +6,8 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { RevealObserver } from '@/components/home/hero-motion';
 import { getCurrentUser } from '@/lib/auth/session';
+import { checkDatabase } from '@/lib/db';
+import { UnavailableView } from '@/components/layout/status-views';
 import { signOutAction } from '@/lib/actions/auth';
 import { config } from '@/lib/config';
 import { isAdmin } from '@/lib/rbac';
@@ -31,7 +33,11 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const t = getDictionary(locale);
-  const user = await getCurrentUser().catch(() => null);
+  // One cheap readiness query per request. If the database is down or not yet
+  // configured, every page shows an honest "temporarily unavailable" notice
+  // instead of a generic error (the cause is logged and reported by /api/health).
+  const db = await checkDatabase();
+  const user = db.ok ? await getCurrentUser().catch(() => null) : null;
 
   return (
     <html lang={LOCALE_LABELS[locale].htmlLang} suppressHydrationWarning>
@@ -45,7 +51,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
         <I18nProvider locale={locale} dictionary={t}>
           <Header user={user ? { displayName: user.displayName, isAdmin: isAdmin(user.roles) } : null} signOutAction={signOutAction} />
           <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
-            {children}
+            {db.ok ? children : <UnavailableView reason={db.reason} showHint={!config.isProduction} />}
           </main>
           <Footer locale={locale} />
           <RevealObserver />

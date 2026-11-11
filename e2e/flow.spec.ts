@@ -168,12 +168,12 @@ test('full review lifecycle: submit → verify → moderate → publish → repo
   await page.goto('/en/account');
   await expect(page.getByText('Temporarily hidden')).toBeVisible();
   await page.getByRole('link', { name: 'Appeal decision' }).click();
-  await page.getByLabel('Why should the decision be reconsidered?').fill('This review only describes my own visit and contains no personal data.');
+  await page.getByLabel('Why should the decision be reconsidered?').fill(`This review only describes my own visit and contains no personal data. (${stamp})`);
   await page.getByRole('button', { name: 'Submit appeal' }).click();
   await expect(page.getByText('Appeal received.')).toBeVisible();
 
   await ap.goto('/admin/reports?tab=appeals');
-  await expect(ap.getByText('This review only describes my own visit')).toBeVisible();
+  await expect(ap.getByText(`contains no personal data. (${stamp})`)).toBeVisible();
 
   await adminCtx.close();
   await anon.close();
