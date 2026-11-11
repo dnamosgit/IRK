@@ -140,6 +140,7 @@ Key decisions:
 
 Detailed docs:
 
+- [**Setup checklist** — from empty Vercel project to working beta, step by step](docs/SETUP_CHECKLIST.md)
 - [Deployment & production setup](docs/DEPLOYMENT.md)
 - [Rating methodology](docs/RATING_METHODOLOGY.md)
 - [Office data verification procedure](docs/DATA_VERIFICATION.md)
